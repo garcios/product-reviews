@@ -2,6 +2,19 @@
 
 This project contains a fully functional Apollo Federation 2.0 microservice architecture, built using Go (`gqlgen`) and Node.js (`Apollo Gateway`).
 
+## Business Functionality
+
+The `product-reviews` platform simulates the core backend services of an e-commerce or product review system. It provides the following main business capabilities:
+
+- **Product Catalog Management**: Maintains a catalog of products, allowing clients to retrieve details such as product identifiers, names, and prices.
+- **User Management**: Manages user profiles, including usernames and account information, enabling personalized experiences and tracking user activities.
+- **Review System**: Handles the storage and retrieval of reviews written by users for specific products. Each review includes a rating (e.g., 1-5 stars) and a textual body.
+
+By leveraging Apollo Federation, the system unifies these distinct domain services into a single, cohesive graph. This enables client applications to seamlessly perform complex data fetching operations, such as:
+- Retrieving a product along with its top reviews and the profiles of the users who wrote them.
+- Fetching a user's profile alongside their cumulative review history and the details of the products they reviewed.
+- Accessing all necessary data in a single request, avoiding client-side data joining and multiple API roundtrips.
+
 ## Architecture Overview
 
 The system is composed of three Go-based subgraphs, a unified Node.js Gateway, and three Go-based REST APIs:
