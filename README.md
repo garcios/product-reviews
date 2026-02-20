@@ -140,6 +140,59 @@ query GetProductsWithReviews {
 }
 ```
 
+#### Example Response
+
+```json
+{
+    "data": {
+        "topProducts": [
+            {
+                "id": "1d300febf62cb53d",
+                "name": "Mechanical Keyboard",
+                "price": 100,
+                "reviews": [
+                    {
+                        "id": "9b22204c51b42e5a",
+                        "body": "This product is amazing!",
+                        "rating": 5,
+                        "author": {
+                            "id": "7451dc08382db64b",
+                            "username": "oskiegarcia"
+                        }
+                    },
+                    {
+                        "id": "ef50703930b0eaef",
+                        "body": "This product is not bad.",
+                        "rating": 3,
+                        "author": {
+                            "id": "77445b7af7675c48",
+                            "username": "pamvalero"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "508fb4f6eb5c119f",
+                "name": "Computer Monitor",
+                "price": 70,
+                "reviews": [
+                    {
+                        "id": "37a36cd779e72c3f",
+                        "body": "This product is amazing!",
+                        "rating": 5,
+                        "author": {
+                            "id": "7451dc08382db64b",
+                            "username": "oskiegarcia"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+
 ---
 
 ## Modifying the GraphQL Schema
