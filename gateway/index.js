@@ -3,6 +3,7 @@ const { ApolloGateway, IntrospectAndCompose, RemoteGraphQLDataSource } = require
 
 class MonitoredDataSource extends RemoteGraphQLDataSource {
     willSendRequest({ request, context }) {
+        console.log('------------');
         console.log(`[Apollo Gateway] Routing request to subgraph: ${this.url}`);
         // You can also log the query itself:
         console.log(request.query);
