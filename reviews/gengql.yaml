@@ -1,0 +1,21 @@
+schema:
+  - "*.graphqls"
+
+exec:
+  filename: internal/generated/generated.go
+
+model:
+  filename: internal/generated/models_gen.go
+
+federation:
+  filename: internal/generated/federation.go
+  version: 2
+
+models:
+  Review:
+    model: "product-reviews/internal/review/models.Review"
+
+resolver:
+  layout: follow-schema
+  dir: internal/resolvers
+  package: resolvers

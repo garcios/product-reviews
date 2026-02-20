@@ -1,0 +1,23 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.0"
+    import: ["@key", "@external", "@shareable", "@provides"]
+  )
+
+type Review @key(fields: "id") {
+  id: ID!
+  body: String
+  rating: Int
+  createdAt: String
+  author: User
+}
+
+extend type Product @key(fields: "id") {
+  id: ID! @external
+  reviews: [Review]
+}
+
+extend type User @key(fields: "id") {
+  id: ID! @external
+  totalReviews: Int @shareable
+}

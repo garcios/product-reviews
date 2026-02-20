@@ -1,0 +1,17 @@
+# Mac OS
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*~
+
+# Go Build artifacts
+bin/
+vendor/
+*.out
+*.exe
+*.o
+*.a
+*.so
