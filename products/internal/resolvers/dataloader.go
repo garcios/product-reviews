@@ -8,18 +8,47 @@ import (
 	"strings"
 
 	"products/internal/product/models"
+	"sync"
 
 	"github.com/vikstrous/dataloadgen"
 )
 
 type CtxKey string
 
-const dataloaderKey CtxKey = "productDataloader"
+const (
+	dataloaderKey CtxKey = "productDataloader"
+	ApiCounterKey CtxKey = "apiCounterLoader"
+)
+
+type ApiCounter struct {
+	mu     sync.Mutex
+	counts map[string]int
+}
+
+func (c *ApiCounter) Increment(endpoint string) {
+	if c == nil {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.counts == nil {
+		c.counts = make(map[string]int)
+	}
+	c.counts[endpoint]++
+}
+
+func GetApiCounter(ctx context.Context) *ApiCounter {
+	if counter, ok := ctx.Value(ApiCounterKey).(*ApiCounter); ok {
+		return counter
+	}
+	return nil
+}
 
 // FetchProducts batches and requests products by their IDs
 func FetchProducts(ctx context.Context, ids []string) ([]*models.Product, []error) {
 	url := "http://localhost:8081/products?ids=" + strings.Join(ids, ",")
 	fmt.Printf("[Products Subgraph] Making REST call to: %s\n", url)
+	GetApiCounter(ctx).Increment("/products")
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, []error{fmt.Errorf("failed to fetch products: %v", err)}
@@ -53,9 +82,16 @@ func FetchProducts(ctx context.Context, ids []string) ([]*models.Product, []erro
 // DataLoaderMiddleware wraps handlers and injects the dataloader instance into context
 func DataLoaderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		counter := &ApiCounter{counts: make(map[string]int)}
+		ctx := context.WithValue(r.Context(), ApiCounterKey, counter)
+
 		loader := dataloadgen.NewLoader(FetchProducts)
-		ctx := context.WithValue(r.Context(), dataloaderKey, loader)
+		ctx = context.WithValue(ctx, dataloaderKey, loader)
 		next.ServeHTTP(w, r.WithContext(ctx))
+
+		for endpoint, count := range counter.counts {
+			fmt.Printf("[Products Subgraph] GraphQL query completed: %s, count=%d\n", endpoint, count)
+		}
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"product-reviews/internal/generated"
 	"product-reviews/internal/review/models"
+	"sync"
 
 	"github.com/vikstrous/dataloadgen"
 )
@@ -19,12 +20,38 @@ const (
 	ProductReviewsKey CtxKey = "productReviewsLoader"
 	UserReviewsKey    CtxKey = "userReviewsLoader"
 	ReviewKey         CtxKey = "reviewLoader"
+	ApiCounterKey     CtxKey = "apiCounterLoader"
 )
+
+type ApiCounter struct {
+	mu     sync.Mutex
+	counts map[string]int
+}
+
+func (c *ApiCounter) Increment(endpoint string) {
+	if c == nil {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.counts == nil {
+		c.counts = make(map[string]int)
+	}
+	c.counts[endpoint]++
+}
+
+func GetApiCounter(ctx context.Context) *ApiCounter {
+	if counter, ok := ctx.Value(ApiCounterKey).(*ApiCounter); ok {
+		return counter
+	}
+	return nil
+}
 
 // FetchReviews fetches individual reviews by their IDs
 func FetchReviews(ctx context.Context, ids []string) ([]*models.Review, []error) {
 	url := "http://localhost:8082/reviews?ids=" + strings.Join(ids, ",")
 	fmt.Printf("[Reviews Subgraph] Making REST call to: %s\n", url)
+	GetApiCounter(ctx).Increment("/reviews")
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, []error{fmt.Errorf("failed to fetch reviews: %v", err)}
@@ -59,6 +86,7 @@ func FetchReviews(ctx context.Context, ids []string) ([]*models.Review, []error)
 func FetchProductReviews(ctx context.Context, productIds []string) ([]*generated.Product, []error) {
 	url := "http://localhost:8082/reviews?productIds=" + strings.Join(productIds, ",")
 	fmt.Printf("[Reviews Subgraph] Making REST call to: %s\n", url)
+	GetApiCounter(ctx).Increment("/reviews")
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, []error{fmt.Errorf("failed to fetch product reviews: %v", err)}
@@ -100,6 +128,7 @@ func FetchProductReviews(ctx context.Context, productIds []string) ([]*generated
 func FetchUserReviews(ctx context.Context, userIds []string) ([]*generated.User, []error) {
 	url := "http://localhost:8082/reviews?userIds=" + strings.Join(userIds, ",")
 	fmt.Printf("[Reviews Subgraph] Making REST call to: %s\n", url)
+	GetApiCounter(ctx).Increment("/reviews")
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, []error{fmt.Errorf("failed to fetch user reviews: %v", err)}
@@ -141,15 +170,22 @@ func FetchUserReviews(ctx context.Context, userIds []string) ([]*generated.User,
 
 func DataLoaderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		counter := &ApiCounter{counts: make(map[string]int)}
+		ctx := context.WithValue(r.Context(), ApiCounterKey, counter)
+
 		reviewLoader := dataloadgen.NewLoader(FetchReviews)
 		prodReviewsLoader := dataloadgen.NewLoader(FetchProductReviews)
 		userReviewsLoader := dataloadgen.NewLoader(FetchUserReviews)
 
-		ctx := context.WithValue(r.Context(), ReviewKey, reviewLoader)
+		ctx = context.WithValue(ctx, ReviewKey, reviewLoader)
 		ctx = context.WithValue(ctx, ProductReviewsKey, prodReviewsLoader)
 		ctx = context.WithValue(ctx, UserReviewsKey, userReviewsLoader)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+
+		for endpoint, count := range counter.counts {
+			fmt.Printf("[Reviews Subgraph] GraphQL query completed: %s, count=%d\n", endpoint, count)
+		}
 	})
 }
 

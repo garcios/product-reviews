@@ -5,7 +5,7 @@ class MonitoredDataSource extends RemoteGraphQLDataSource {
     willSendRequest({ request, context }) {
         console.log(`[Apollo Gateway] Routing request to subgraph: ${this.url}`);
         // You can also log the query itself:
-        // console.log(request.query);
+        console.log(request.query);
     }
 }
 
