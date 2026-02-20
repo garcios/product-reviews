@@ -121,6 +121,8 @@ You can also visit the playgrounds for the individual subgraphs. This is useful 
 
 Currently, the schemas have been scaffolded and the `_entities` resolvers are wired up. You will need to implement your queries in the `internal/resolvers` directories for each project. Here is an example query you can use once you've fleshed out your resolvers:
 
+#### GetProductsWithReviews
+
 ```graphql
 query GetProductsWithReviews {
   topProducts {
@@ -193,7 +195,66 @@ query GetProductsWithReviews {
 ```
 
 
----
+#### GetReviewsByUser
+
+```graphql
+query GetReviewsByUser{
+  user(id: "7451dc08382db64b") {
+    id
+    username
+    totalReviews
+    reviews {
+      id
+      rating
+      body
+      createdAt
+      product{
+        id
+        name
+      }
+    }
+    
+  }
+}
+```
+
+#### Example Response
+
+```json
+{
+    "data": {
+        "user": {
+            "id": "7451dc08382db64b",
+            "username": "oskiegarcia",
+            "totalReviews": 2,
+            "reviews": [
+                {
+                    "id": "37a36cd779e72c3f",
+                    "rating": 5,
+                    "body": "This product is amazing!",
+                    "createdAt": "2026-02-20T17:19:26Z",
+                    "product": {
+                        "id": "508fb4f6eb5c119f",
+                        "name": "Computer Monitor"
+                    }
+                },
+                {
+                    "id": "9b22204c51b42e5a",
+                    "rating": 5,
+                    "body": "This product is amazing!",
+                    "createdAt": "2026-02-20T17:20:18Z",
+                    "product": {
+                        "id": "1d300febf62cb53d",
+                        "name": "Mechanical Keyboard"
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
+
 
 ## Modifying the GraphQL Schema
 
