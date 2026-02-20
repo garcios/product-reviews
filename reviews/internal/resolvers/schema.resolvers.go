@@ -16,6 +16,11 @@ func (r *reviewResolver) Author(ctx context.Context, obj *models.Review) (*gener
 	return &generated.User{ID: obj.UserID}, nil
 }
 
+// Product is the resolver for the product field.
+func (r *reviewResolver) Product(ctx context.Context, obj *models.Review) (*generated.Product, error) {
+	return &generated.Product{ID: obj.ProductID}, nil
+}
+
 // Review returns generated.ReviewResolver implementation.
 func (r *Resolver) Review() generated.ReviewResolver { return &reviewResolver{r} }
 

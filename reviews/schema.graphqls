@@ -10,6 +10,7 @@ type Review @key(fields: "id") {
   rating: Int
   createdAt: String
   author: User
+  product: Product
 }
 
 extend type Product @key(fields: "id") {

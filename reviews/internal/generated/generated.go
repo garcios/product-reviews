@@ -57,6 +57,7 @@ type ComplexityRoot struct {
 		Body      func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
+		Product   func(childComplexity int) int
 		Rating    func(childComplexity int) int
 	}
 
@@ -78,6 +79,7 @@ type EntityResolver interface {
 }
 type ReviewResolver interface {
 	Author(ctx context.Context, obj *models.Review) (*User, error)
+	Product(ctx context.Context, obj *models.Review) (*Product, error)
 }
 
 type executableSchema graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot]
@@ -183,6 +185,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Review.ID(childComplexity), true
+	case "Review.product":
+		if e.ComplexityRoot.Review.Product == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Review.Product(childComplexity), true
 	case "Review.rating":
 		if e.ComplexityRoot.Review.Rating == nil {
 			break
@@ -295,6 +303,7 @@ type Review @key(fields: "id") {
   rating: Int
   createdAt: String
   author: User
+  product: Product
 }
 
 extend type Product @key(fields: "id") {
@@ -575,6 +584,8 @@ func (ec *executionContext) fieldContext_Entity_findReviewByID(ctx context.Conte
 				return ec.fieldContext_Review_createdAt(ctx, field)
 			case "author":
 				return ec.fieldContext_Review_author(ctx, field)
+			case "product":
+				return ec.fieldContext_Review_product(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Review", field.Name)
 		},
@@ -705,6 +716,8 @@ func (ec *executionContext) fieldContext_Product_reviews(_ context.Context, fiel
 				return ec.fieldContext_Review_createdAt(ctx, field)
 			case "author":
 				return ec.fieldContext_Review_author(ctx, field)
+			case "product":
+				return ec.fieldContext_Review_product(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Review", field.Name)
 		},
@@ -1047,6 +1060,41 @@ func (ec *executionContext) fieldContext_Review_author(_ context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Review_product(ctx context.Context, field graphql.CollectedField, obj *models.Review) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Review_product,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Review().Product(ctx, obj)
+		},
+		nil,
+		ec.marshalOProduct2ᚖproductᚑreviewsᚋinternalᚋgeneratedᚐProduct,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Review_product(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Review",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Product_id(ctx, field)
+			case "reviews":
+				return ec.fieldContext_Product_reviews(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *User) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1139,6 +1187,8 @@ func (ec *executionContext) fieldContext_User_reviews(_ context.Context, field g
 				return ec.fieldContext_Review_createdAt(ctx, field)
 			case "author":
 				return ec.fieldContext_Review_author(ctx, field)
+			case "product":
+				return ec.fieldContext_Review_product(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Review", field.Name)
 		},
@@ -2961,6 +3011,39 @@ func (ec *executionContext) _Review(ctx context.Context, sel ast.SelectionSet, o
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "product":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Review_product(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3921,6 +4004,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	_ = ctx
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOProduct2ᚖproductᚑreviewsᚋinternalᚋgeneratedᚐProduct(ctx context.Context, sel ast.SelectionSet, v *Product) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Product(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOReview2ᚕᚖproductᚑreviewsᚋinternalᚋreviewᚋmodelsᚐReview(ctx context.Context, sel ast.SelectionSet, v []*models.Review) graphql.Marshaler {
