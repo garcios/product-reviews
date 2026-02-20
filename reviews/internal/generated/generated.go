@@ -62,6 +62,7 @@ type ComplexityRoot struct {
 
 	User struct {
 		ID           func(childComplexity int) int
+		Reviews      func(childComplexity int) int
 		TotalReviews func(childComplexity int) int
 	}
 
@@ -195,6 +196,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.User.ID(childComplexity), true
+	case "User.reviews":
+		if e.ComplexityRoot.User.Reviews == nil {
+			break
+		}
+
+		return e.ComplexityRoot.User.Reviews(childComplexity), true
 	case "User.totalReviews":
 		if e.ComplexityRoot.User.TotalReviews == nil {
 			break
@@ -298,6 +305,7 @@ extend type Product @key(fields: "id") {
 extend type User @key(fields: "id") {
   id: ID! @external
   totalReviews: Int @shareable
+  reviews: [Review]
 }
 `, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
@@ -614,6 +622,8 @@ func (ec *executionContext) fieldContext_Entity_findUserByID(ctx context.Context
 				return ec.fieldContext_User_id(ctx, field)
 			case "totalReviews":
 				return ec.fieldContext_User_totalReviews(ctx, field)
+			case "reviews":
+				return ec.fieldContext_User_reviews(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -1028,6 +1038,8 @@ func (ec *executionContext) fieldContext_Review_author(_ context.Context, field 
 				return ec.fieldContext_User_id(ctx, field)
 			case "totalReviews":
 				return ec.fieldContext_User_totalReviews(ctx, field)
+			case "reviews":
+				return ec.fieldContext_User_reviews(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -1088,6 +1100,47 @@ func (ec *executionContext) fieldContext_User_totalReviews(_ context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_reviews(ctx context.Context, field graphql.CollectedField, obj *User) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_User_reviews,
+		func(ctx context.Context) (any, error) {
+			return obj.Reviews, nil
+		},
+		nil,
+		ec.marshalOReview2ᚕᚖproductᚑreviewsᚋinternalᚋreviewᚋmodelsᚐReview,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_User_reviews(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Review_id(ctx, field)
+			case "body":
+				return ec.fieldContext_Review_body(ctx, field)
+			case "rating":
+				return ec.fieldContext_Review_rating(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Review_createdAt(ctx, field)
+			case "author":
+				return ec.fieldContext_Review_author(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Review", field.Name)
 		},
 	}
 	return fc, nil
@@ -2949,6 +3002,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "totalReviews":
 			out.Values[i] = ec._User_totalReviews(ctx, field, obj)
+		case "reviews":
+			out.Values[i] = ec._User_reviews(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

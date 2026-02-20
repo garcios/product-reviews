@@ -112,19 +112,27 @@ func FetchUserReviews(ctx context.Context, userIds []string) ([]*generated.User,
 	}
 
 	userReviewCounter := make(map[string]int)
+	userReviewMap := make(map[string][]*models.Review)
 	for i := range apiReviews {
-		userReviewCounter[apiReviews[i].UserID]++
+		userID := apiReviews[i].UserID
+		userReviewCounter[userID]++
+		userReviewMap[userID] = append(userReviewMap[userID], &apiReviews[i])
 	}
 
 	var results []*generated.User
 	errors := make([]error, len(userIds))
 
 	for _, id := range userIds {
-		// Must return mapped User instance to Dataloader schema wrapper regardless of 0 counts bounds.
 		count := userReviewCounter[id]
+		revs := userReviewMap[id]
+		if revs == nil {
+			revs = []*models.Review{}
+		}
+
 		results = append(results, &generated.User{
 			ID:           id,
 			TotalReviews: &count,
+			Reviews:      revs,
 		})
 	}
 

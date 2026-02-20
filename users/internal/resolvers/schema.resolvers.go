@@ -11,12 +11,12 @@ import (
 	"users/internal/user/models"
 )
 
-// FindUserByID is the resolver for the findUserByID field.
-func (r *entityResolver) FindUserByID(ctx context.Context, id string) (*models.User, error) {
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
 	return CtxLoadProvider(ctx).Load(ctx, id)
 }
 
-// Entity returns generated.EntityResolver implementation.
-func (r *Resolver) Entity() generated.EntityResolver { return &entityResolver{r} }
+// Query returns generated.QueryResolver implementation.
+func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-type entityResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }

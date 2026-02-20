@@ -20,4 +20,5 @@ extend type Product @key(fields: "id") {
 extend type User @key(fields: "id") {
   id: ID! @external
   totalReviews: Int @shareable
+  reviews: [Review]
 }

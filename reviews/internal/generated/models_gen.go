@@ -17,8 +17,9 @@ type Query struct {
 }
 
 type User struct {
-	ID           string `json:"id"`
-	TotalReviews *int   `json:"totalReviews,omitempty"`
+	ID           string           `json:"id"`
+	TotalReviews *int             `json:"totalReviews,omitempty"`
+	Reviews      []*models.Review `json:"reviews,omitempty"`
 }
 
 func (User) IsEntity() {}
