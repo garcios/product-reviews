@@ -22,3 +22,14 @@ kill-all:
 	kill-api-user
 	kill-api-reviews
 	kill-api-products
+
+generate-products:
+	cd products && go run github.com/99designs/gqlgen generate -c gengql.yaml
+
+generate-reviews:
+	cd reviews && go run github.com/99designs/gqlgen generate -c gengql.yaml
+
+generate-users:
+	cd users && go run github.com/99designs/gqlgen generate -c gengql.yaml
+
+generate-all: generate-products generate-reviews generate-users
